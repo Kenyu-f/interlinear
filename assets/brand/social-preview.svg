@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#ECE9DF"/>
+  <rect width="1280" height="640" fill="none" stroke="#D3CEBC" stroke-width="2"/>
+
+  <!-- ruled paper lines -->
+  <g stroke="#D3CEBC" stroke-width="1">
+    <line x1="0" y1="96" x2="1280" y2="96"/>
+    <line x1="0" y1="192" x2="1280" y2="192"/>
+    <line x1="0" y1="288" x2="1280" y2="288"/>
+    <line x1="0" y1="480" x2="1280" y2="480"/>
+    <line x1="0" y1="576" x2="1280" y2="576"/>
+  </g>
+
+  <!-- mark -->
+  <rect x="120" y="220" width="200" height="200" rx="38" fill="#1F5750"/>
+  <rect x="164" y="284" width="112" height="18" rx="9" fill="#F6F4EC"/>
+  <rect x="164" y="316" width="75" height="18" rx="9" fill="#C97A2B"/>
+  <rect x="164" y="348" width="92" height="18" rx="9" fill="#F6F4EC" opacity="0.6"/>
+
+  <text x="368" y="300" font-family="DejaVu Sans, sans-serif" font-weight="bold"
+        font-size="72" letter-spacing="-1" fill="#1B231F">Interlinear</text>
+  <text x="370" y="352" font-family="DejaVu Sans Mono, monospace"
+        font-size="26" fill="#4A544E">Cross-language cheat sheets, line by line.</text>
+</svg>

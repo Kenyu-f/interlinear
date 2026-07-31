@@ -1,0 +1,244 @@
+---
+import Base from "../layouts/Base.astro";
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("tutorials");
+  const byLang = new Map<string, typeof entries>();
+  for (const e of entries) {
+    const arr = byLang.get(e.data.lang) ?? [];
+    arr.push(e);
+    byLang.set(e.data.lang, arr);
+  }
+  return [...byLang.entries()].map(([lang, versions]) => ({
+    params: { lang },
+    props: { versions },
+  }));
+}
+
+const { versions } = Astro.props;
+// ロケールの表示順を固定 (日本語→英語)
+const order = ["ja", "en"];
+versions.sort((a, b) => order.indexOf(a.data.locale) - order.indexOf(b.data.locale));
+
+const rendered = await Promise.all(
+  versions.map(async (v) => ({ data: v.data, Content: (await render(v)).Content }))
+);
+
+const title = versions[0].data.title;
+const defaultLocale = versions.find((v) => v.data.locale === "ja") ? "ja" : versions[0].data.locale;
+---
+<Base title={title} description={`${title} の構文を、コードとコメントだけでざっと確認できるチートシート。`}>
+  <section class="masthead">
+    <div class="wrap masthead__inner">
+      <a class="back" href="/">← Cross-language reference</a>
+      <p class="kicker">Tutorial · Comment-driven syntax</p>
+      <h1 class="masthead__title">{title}</h1>
+      <p class="byline">
+        Available in
+        <span class="byline__locales">
+          {rendered.map((r) => r.data.localeLabel).join(" · ")}
+        </span>
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap tab-row">
+    <div class="locale-tabs" role="tablist" aria-label="表示する自然言語">
+      {rendered.map((r) => (
+        <button
+          type="button"
+          class="locale-tab"
+          role="tab"
+          data-locale={r.data.locale}
+          aria-selected={r.data.locale === defaultLocale ? "true" : "false"}
+        >
+          {r.data.localeLabel}
+        </button>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap">
+    {rendered.map((r) => (
+      <article
+        class="pane"
+        data-locale-pane={r.data.locale}
+        hidden={r.data.locale !== defaultLocale}
+      >
+        <div class="pane__bar">
+          <span class="pane__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="pane__filename">{r.data.filename}</span>
+        </div>
+        <div class="pane__body">
+          <r.Content />
+        </div>
+      </article>
+    ))}
+  </section>
+</Base>
+
+<script>
+  // 言語タブの切り替え（ページ遷移なし・即座に表示を差し替える）
+  const STORAGE_KEY = "interlinear:locale";
+
+  function applyLocale(locale: string) {
+    const panes = document.querySelectorAll<HTMLElement>("[data-locale-pane]");
+    let matched = false;
+    panes.forEach((pane) => {
+      const isMatch = pane.dataset.localePane === locale;
+      if (isMatch) matched = true;
+      pane.hidden = !isMatch;
+    });
+    if (!matched) return;
+
+    document.querySelectorAll<HTMLElement>(".locale-tab").forEach((tab) => {
+      tab.setAttribute("aria-selected", tab.dataset.locale === locale ? "true" : "false");
+    });
+    localStorage.setItem(STORAGE_KEY, locale);
+  }
+
+  document.querySelectorAll<HTMLElement>(".locale-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const locale = tab.dataset.locale;
+      if (locale) applyLocale(locale);
+    });
+  });
+
+  // 保存済みの選択、または未保存ならブラウザの言語設定を優先する
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    applyLocale(saved);
+  } else {
+    const browserLocale = navigator.language.toLowerCase().startsWith("ja") ? "ja" : "en";
+    applyLocale(browserLocale);
+  }
+</script>
+
+<style>
+  /* --- feature-article masthead --- */
+  .masthead {
+    background: var(--masthead);
+    background-image: linear-gradient(180deg, var(--masthead), var(--masthead-deep));
+    color: var(--masthead-ink);
+  }
+  .masthead__inner {
+    padding: 28px 24px 32px;
+  }
+  .back {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: 0.8rem;
+    color: var(--masthead-ink);
+    opacity: 0.75;
+    text-decoration: none;
+    margin-bottom: 22px;
+  }
+  .back:hover { opacity: 1; }
+
+  .kicker {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--kicker);
+    margin: 0 0 12px;
+  }
+  .masthead__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 2.9rem);
+    line-height: 1.15;
+    color: #fff;
+    margin: 0 0 18px;
+  }
+  .byline {
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    color: var(--masthead-ink);
+    opacity: 0.85;
+    margin: 0;
+  }
+  .byline__locales {
+    font-family: var(--font-serif);
+    font-style: italic;
+    margin-left: 6px;
+  }
+
+  /* --- signature element: index-card style locale tabs --- */
+  .tab-row {
+    padding-top: 28px;
+  }
+  .locale-tabs {
+    display: inline-flex;
+    position: relative;
+  }
+  .locale-tab {
+    font-family: var(--font-code);
+    font-size: 0.85rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    padding: 9px 18px;
+    cursor: pointer;
+    position: relative;
+    border-radius: 6px 6px 0 0;
+  }
+  .locale-tab + .locale-tab {
+    margin-left: -1px;
+  }
+  .locale-tab[aria-selected="true"] {
+    background: var(--paper-raised);
+    color: var(--masthead-deep);
+    font-weight: 600;
+    border-color: var(--masthead);
+    z-index: 1;
+  }
+  .locale-tab:not([aria-selected="true"]):hover {
+    color: var(--ink);
+    background: var(--paper-raised);
+  }
+
+  .pane {
+    margin: 0 0 40px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-raised);
+    overflow: hidden;
+    box-shadow: 0 1px 0 var(--rule);
+  }
+  .pane__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+  }
+  .pane__dots { display: inline-flex; gap: 5px; }
+  .pane__dots i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--rule);
+    display: inline-block;
+  }
+  .pane__filename {
+    font-family: var(--font-code);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .pane__body {
+    padding: 8px 4px;
+    overflow-x: auto;
+  }
+  .pane__body :global(pre) {
+    margin: 0;
+    padding: 20px 24px;
+    font-family: var(--font-code);
+    font-size: 0.86rem;
+    line-height: 1.7;
+    background: transparent !important;
+  }
+</style>

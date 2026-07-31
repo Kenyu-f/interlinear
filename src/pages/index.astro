@@ -1,0 +1,279 @@
+---
+import Base from "../layouts/Base.astro";
+import { getCollection } from "astro:content";
+
+const entries = await getCollection("tutorials");
+
+const byLang = new Map<string, { title: string; lang: string; locales: { locale: string; label: string }[] }>();
+for (const e of entries) {
+  const key = e.data.lang;
+  if (!byLang.has(key)) {
+    byLang.set(key, { title: e.data.title, lang: e.data.lang, locales: [] });
+  }
+  byLang.get(key)!.locales.push({ locale: e.data.locale, label: e.data.localeLabel });
+}
+const languages = [...byLang.values()];
+
+// 表示用の短縮ラベル。自動生成(先頭2文字)だとロケールコード(ja/en)と
+// 紛らわしくなる言語があるため、必要なものだけ手で上書きする。
+const SHORT_LABELS: Record<string, string> = {
+  javascript: "JS",
+  python: "PY",
+};
+const shortLabel = (lang: string) =>
+  SHORT_LABELS[lang] ?? lang.slice(0, 2).toUpperCase();
+---
+<Base title="言語一覧">
+  <section class="masthead">
+    <div class="wrap masthead__inner">
+      <p class="kicker">Cross-language reference · Vol. 1</p>
+      <h1 class="masthead__title">
+        1つのコードの行間に、<br />複数の自然言語を重ねる。
+      </h1>
+      <ul class="byline">
+        {languages.map((l) => (
+          <li>
+            <strong>{l.title}</strong>
+            <span class="byline__locales">{l.locales.map((loc) => loc.label).join(" / ")}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="wrap dek-wrap">
+    <p class="dek">
+      言語学でいう「行間注釈（interlinear gloss）」——原文の行間に訳や注釈を重ねる方式——を、
+      そのままコードに応用する。1つのコードに対して複数の自然言語の注釈を並行して用意し、
+      タブひとつで即座に読む言語を切り替えられるようにする。
+    </p>
+  </section>
+
+  <section class="wrap about">
+    <p>
+      <em>learnxinyminutes.com</em> は、コメントだけで構文を語らせる1本のコードファイルが、
+      プログラミング言語を学ぶ最短経路のひとつであることを証明した。Interlinear はその形式を
+      引き継ぎながら、もうひとつの軸——自然言語——を掛け合わせる。各チュートリアルは
+      実際に動くコードそのものであり、コメントだけで構成される点は元祖とまったく同じ。違うのは、
+      それぞれが複数の自然言語で並行して存在し、切り替えがページ遷移もレイアウト崩れもなく、
+      一瞬で完了することだ。
+    </p>
+    <p>
+      対応する自然言語は、コンテンツが揃っている言語だけ自動的にタブとして現れる。
+      部分的にしか翻訳されていない状態——たとえば Python だけ中国語がある、
+      JavaScript にはまだない——は想定内であり、むしろそれが前提になっている。
+      増えていくのは言語の数ではなく、行間の数だ。
+    </p>
+  </section>
+
+  <section class="wrap catalog">
+    <div class="catalog__head">
+      <span>プログラミング言語</span>
+      <span>対応している自然言語</span>
+    </div>
+    <ul class="catalog__list">
+      {languages.map((l) => (
+        <li class="card">
+          <a class="card__link" href={`/${l.lang}`}>
+            <span class="card__index" aria-hidden="true">{shortLabel(l.lang)}</span>
+            <span class="card__title">{l.title}</span>
+            <span class="card__locales">
+              {l.locales.map((loc) => (
+                <span class="pill">{loc.label}</span>
+              ))}
+            </span>
+            <span class="card__go" aria-hidden="true">読む →</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <style>
+    /* --- feature-article masthead --- */
+    .masthead {
+      background: var(--masthead);
+      background-image: linear-gradient(180deg, var(--masthead), var(--masthead-deep));
+      color: var(--masthead-ink);
+    }
+    .masthead__inner {
+      padding: 48px 24px 32px;
+    }
+    .kicker {
+      font-family: var(--font-ui);
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--kicker);
+      margin: 0 0 16px;
+    }
+    .masthead__title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: #fff;
+      margin: 0 0 30px;
+      max-width: 16ch;
+    }
+    .byline {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 32px;
+      margin: 0;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .byline strong {
+      font-family: var(--font-ui);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .byline__locales {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--masthead-ink);
+      opacity: 0.85;
+      margin-left: 8px;
+    }
+
+    /* --- dek / pull-quote --- */
+    .dek-wrap {
+      padding-top: 40px;
+    }
+    .dek {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 600;
+      font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+      line-height: 1.55;
+      color: var(--ink);
+      border-left: 4px solid var(--masthead);
+      padding-left: 22px;
+      margin: 0 0 8px;
+      max-width: 68ch;
+    }
+
+    /* --- two-column drop-cap body --- */
+    .about {
+      font-family: var(--font-serif);
+      font-size: 1.02rem;
+      line-height: 1.85;
+      color: var(--ink);
+      column-count: 2;
+      column-gap: 44px;
+      padding-top: 28px;
+      padding-bottom: 48px;
+    }
+    .about p {
+      margin: 0 0 1.2em;
+      break-inside: avoid-column;
+      text-align: justify;
+    }
+    .about p:first-of-type::first-letter {
+      float: left;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 3.6em;
+      line-height: 0.8;
+      padding: 6px 10px 0 0;
+      color: var(--masthead);
+    }
+    .about em {
+      font-style: italic;
+      color: var(--ink-soft);
+    }
+
+    @media (max-width: 700px) {
+      .about { column-count: 1; }
+    }
+
+    .catalog {
+      padding-bottom: 40px;
+    }
+    .catalog__head {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 8px;
+      margin-bottom: 4px;
+    }
+    .catalog__list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .card {
+      border-bottom: 1px solid var(--rule);
+    }
+    .card__link {
+      display: grid;
+      grid-template-columns: 44px 1fr auto auto;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 4px;
+      text-decoration: none;
+      color: var(--ink);
+      transition: background-color 0.15s ease, padding-left 0.15s ease;
+      border-radius: var(--radius);
+    }
+    .card__link:hover {
+      background: var(--paper-raised);
+      padding-left: 10px;
+    }
+    .card__index {
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      color: var(--paper-raised);
+      background: var(--jade-deep);
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+    }
+    .card__title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1.15rem;
+    }
+    .card__locales {
+      display: flex;
+      gap: 6px;
+    }
+    .pill {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      padding: 3px 10px;
+      color: var(--ink-soft);
+      white-space: nowrap;
+    }
+    .card__go {
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      color: var(--jade-deep);
+      white-space: nowrap;
+    }
+
+    @media (max-width: 560px) {
+      .card__link {
+        grid-template-columns: 36px 1fr;
+        row-gap: 8px;
+      }
+      .card__go { display: none; }
+      .card__locales { grid-column: 2; }
+    }
+  </style>
+</Base>

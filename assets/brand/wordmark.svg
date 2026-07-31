@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160">
+  <rect x="8" y="8" width="144" height="144" rx="28" fill="#1F5750"/>
+  <rect x="40" y="55" width="80" height="13" rx="6.5" fill="#F6F4EC"/>
+  <rect x="40" y="75" width="54" height="13" rx="6.5" fill="#C97A2B"/>
+  <rect x="40" y="95" width="66" height="13" rx="6.5" fill="#F6F4EC" opacity="0.6"/>
+
+  <text x="180" y="98" font-family="'Space Grotesk', 'Arial Black', sans-serif"
+        font-weight="700" font-size="58" letter-spacing="-1" fill="#1B231F">
+    Interlinear
+  </text>
+</svg>

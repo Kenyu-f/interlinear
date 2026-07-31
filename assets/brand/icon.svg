@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Interlinear mark: three stacked, unevenly-lengthed rules,
+       evoking an interlinear gloss (source line / gloss line / translation line).
+       The middle line — the "gloss" — is the one that changes with locale,
+       so it is picked out in the accent color. -->
+  <rect width="512" height="512" rx="96" fill="#1F5750"/>
+  <rect x="112" y="168" width="288" height="42" rx="21" fill="#F6F4EC"/>
+  <rect x="112" y="235" width="192" height="42" rx="21" fill="#C97A2B"/>
+  <rect x="112" y="302" width="240" height="42" rx="21" fill="#F6F4EC" opacity="0.6"/>
+</svg>
